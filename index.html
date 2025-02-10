@@ -195,7 +195,12 @@
     return gifs[index];
   }
 function renderText(node, grayscaleData) {
-  let gap = isMobileDevice() ? 30 : 20; // Tile size
+  let gap = 20; // Keep tile size consistent to avoid layout issues
+
+  const gridContainer = document.createElement('div'); // New wrapper
+  gridContainer.style.transform = "scale(0.67)"; // Zoom out to 67%
+  gridContainer.style.transformOrigin = "top left"; // Keep position stable
+  gridContainer.style.display = "inline-block"; // Prevent affecting other elements
 
   const gridElem = document.createElement('div');
   gridElem.className = 'grid';
@@ -205,17 +210,18 @@ function renderText(node, grayscaleData) {
   gridElem.style.gap = "2px"; // Space between elements
 
   node.textContent = "";
-  node.appendChild(gridElem);
+  gridContainer.appendChild(gridElem);
+  node.appendChild(gridContainer); // Append the scaled wrapper
 
   grayscaleData.forEach((row) => {
     row.forEach((pixel) => {
       const gifSrc = getGifByScale(pixel);
 
-      // Wrapper div to prevent layout shifts
+      // Wrapper for individual tiles
       const wrapper = document.createElement('div');
       wrapper.style.width = `${gap}px`;
       wrapper.style.height = `${gap}px`;
-      wrapper.style.overflow = "hidden"; 
+      wrapper.style.overflow = "hidden";
       wrapper.style.display = "flex";
       wrapper.style.justifyContent = "center";
       wrapper.style.alignItems = "center";
@@ -233,15 +239,11 @@ function renderText(node, grayscaleData) {
       let yPercent = Math.random() * (100 - 10);
       imgElem.style.objectPosition = `${xPercent}% ${yPercent}%`;
 
-      // Instead of transform: scale(2), use zoom
-      imgElem.style.zoom = "2"; // Enlarges but keeps layout intact
-
       wrapper.appendChild(imgElem);
       gridElem.appendChild(wrapper);
     });
   });
 }
-
 
   init();
 
