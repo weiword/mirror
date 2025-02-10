@@ -196,13 +196,14 @@
   }
 
 function renderText(node, grayscaleData) {
-  let gap = isMobileDevice() ? 30 : 20; // Increase size
+  let gap = isMobileDevice() ? 30 : 20; // Tile size
+
   const gridElem = document.createElement('div');
   gridElem.className = 'grid';
   gridElem.style.display = "grid";
   gridElem.style.gridTemplateColumns = `repeat(${grayscaleData[0].length}, ${gap}px)`;
   gridElem.style.gridTemplateRows = `repeat(${grayscaleData.length}, ${gap}px)`;
-  gridElem.style.gap = "2px"; // Add spacing
+  gridElem.style.gap = "2px"; // Space between elements
 
   node.textContent = "";
   node.appendChild(gridElem);
@@ -211,31 +212,30 @@ function renderText(node, grayscaleData) {
     row.forEach((pixel) => {
       const gifSrc = getGifByScale(pixel);
 
-      // Create a wrapper div to handle scaling
+      // Wrapper div to prevent layout shifts
       const wrapper = document.createElement('div');
       wrapper.style.width = `${gap}px`;
       wrapper.style.height = `${gap}px`;
-      wrapper.style.overflow = "hidden"; // Ensure no overflow
+      wrapper.style.overflow = "hidden"; 
       wrapper.style.display = "flex";
       wrapper.style.justifyContent = "center";
       wrapper.style.alignItems = "center";
 
-      // Create image element
+      // Image element
       const imgElem = document.createElement('img');
       imgElem.src = gifSrc;
-      imgElem.style.width = `${gap * 10}px`;  // Make the image larger than needed
-      imgElem.style.height = `${gap * 10}px`; // This allows cropping
+      imgElem.style.width = "100px";  // Make it bigger than needed
+      imgElem.style.height = "100px"; 
       imgElem.style.objectFit = "none"; // Prevent scaling
       imgElem.style.display = "block";
 
-      // Randomize position inside the "virtual 1000x1000" space
-      let xPercent = Math.random() * (100 - 10); // Pick a random view in %
+      // Randomize crop position inside the GIF
+      let xPercent = Math.random() * (100 - 10);
       let yPercent = Math.random() * (100 - 10);
-
       imgElem.style.objectPosition = `${xPercent}% ${yPercent}%`;
 
-      // Apply scaling but inside the wrapper
-      imgElem.style.transform = "scale(2)"; // Make it bigger
+      // Instead of transform: scale(2), use zoom
+      imgElem.style.zoom = "2"; // Enlarges but keeps layout intact
 
       wrapper.appendChild(imgElem);
       gridElem.appendChild(wrapper);
