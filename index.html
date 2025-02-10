@@ -196,7 +196,7 @@
   }
 
 function renderText(node, grayscaleData) {
-  let gap = isMobileDevice() ? 15 : 10;
+  let gap = isMobileDevice() ? 30 : 20; // Increase size
   const gridElem = document.createElement('div');
   gridElem.className = 'grid';
   gridElem.style.gridTemplateColumns = `repeat(${grayscaleData[0].length}, ${gap}px)`;
@@ -216,17 +216,15 @@ function renderText(node, grayscaleData) {
       imgElem.style.height = `${gap * 10}px`; // This allows cropping
       imgElem.style.objectFit = "none"; // Prevent scaling
       imgElem.style.display = "block";
-      imgElem.style.clipPath = "inset(0px 90% 90% 0px)"; // Keep only 10% of the top-left visible
 
       // Randomize position inside the "virtual 1000x1000" space
-      let virtualSize = 1000;
-      let realSize = 100; // Assume the actual GIF is 100px
-      let scaleFactor = virtualSize / realSize;
-
       let xPercent = Math.random() * (100 - 10); // Pick a random view in %
       let yPercent = Math.random() * (100 - 10);
 
       imgElem.style.objectPosition = `${xPercent}% ${yPercent}%`;
+
+      // Scale it up
+      imgElem.style.transform = "scale(2)"; // Make it bigger
 
       imgElem.style.width = `${gap}px`;
       imgElem.style.height = `${gap}px`;
