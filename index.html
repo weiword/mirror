@@ -204,26 +204,27 @@
   }
 
   function renderText(node, grayscaleData) {
-    let gap = isMobileDevice() ? 15 : 10;
+    let gap = 10;
     const gridElem = document.createElement('div');
     gridElem.className = 'grid';
     gridElem.style.gridTemplateColumns = `repeat(${grayscaleData[0].length}, ${gap}px)`;
     gridElem.style.gridTemplateRows = `repeat(${grayscaleData.length}, ${gap}px)`;
 
     for (let row of grayscaleData) {
-      for (let pixel of row) {
-        const imgElem = document.createElement('img');
-        imgElem.src = getGifByScale(pixel);
-        imgElem.style.width = `${gap}px`;
-        imgElem.style.height = `${gap}px`;
-        imgElem.style.objectFit = 'cover';
-        imgElem.style.objectPosition = `${Math.random() * 100}% ${Math.random() * 100}%`;
-        gridElem.appendChild(imgElem);
-      }
+        for (let pixel of row) {
+            const divElem = document.createElement('div');
+            divElem.style.width = `${gap}px`;
+            divElem.style.height = `${gap}px`;
+            divElem.style.backgroundImage = `url(${getGifByScale(pixel)})`;
+            divElem.style.backgroundSize = "200% 200%"; // Zoom into the GIF
+            divElem.style.backgroundPosition = `${Math.random() * 100}% ${Math.random() * 100}%`;
+            gridElem.appendChild(divElem);
+        }
     }
 
     node.textContent = "";
     node.appendChild(gridElem);
+}
   }
 
   init();
