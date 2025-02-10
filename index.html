@@ -133,7 +133,7 @@
 
 
 <script>
- (function () {
+(function () {
   const video = document.getElementById('video');
   const textVideo = document.getElementById('text-video');
   const canvas = document.getElementById('canvas-video');
@@ -145,10 +145,19 @@
     return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
   }
 
-  const gifs = [
+  const gifSources = [
     "https://github.com/weiword/guide/blob/main/resources/ir_animation_dark.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true",
     "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true"
   ];
+
+  const gifVideos = gifSources.map(src => {
+    const vid = document.createElement('video');
+    vid.src = src;
+    vid.loop = true;
+    vid.muted = true;
+    vid.play();
+    return vid;
+  });
 
   function setCanvasSize() {
     w = Math.min(window.innerWidth, 450);
@@ -190,9 +199,18 @@
     return res;
   }
 
+  function getRandomSection(video) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 15;
+    canvas.height = 15;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, Math.random() * video.videoWidth, Math.random() * video.videoHeight, 15, 15, 0, 0, 15, 15);
+    return canvas;
+  }
+
   function getGifByScale(scale) {
-    const index = Math.floor(scale / 255 * (gifs.length - 1));
-    return gifs[index];
+    const index = Math.floor(scale / 255 * (gifVideos.length - 1));
+    return gifVideos[index];
   }
 
   function renderText(node, grayscaleData) {
@@ -204,11 +222,11 @@
 
     for (let row of grayscaleData) {
       for (let pixel of row) {
-        const imgElem = document.createElement('img');
-        imgElem.src = getGifByScale(pixel);
-        imgElem.style.width = `${gap}px`;
-        imgElem.style.height = `${gap}px`;
-        gridElem.appendChild(imgElem);
+        const video = getGifByScale(pixel);
+        const sectionCanvas = getRandomSection(video);
+        sectionCanvas.style.width = `${gap}px`;
+        sectionCanvas.style.height = `${gap}px`;
+        gridElem.appendChild(sectionCanvas);
       }
     }
 
