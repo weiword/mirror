@@ -1,61 +1,70 @@
-let video;
-let gifs = [];
-let cols, rows;
-let cellSize = 10;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mirror</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+</head>
+<body>
+  <script>
+    let video;
+    let gifs = [];
+    let cols, rows;
+    let cellSize = 8;
 
-function preload() {
-  gifs = [
-    loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_6.gif"),
-    loadImage("https://raw.githubusercontent.com/weiword/guide/main/resources/ir_animation_dark.gif"),
-    loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_2.gif"),
-    loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_1.gif"),
-    loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_1.gif"),
-    loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_1.gif"),
-    loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_1.gif"),
-    loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_2.gif"),
-    loadImage("https://raw.githubusercontent.com/weiword/guide/main/resources/ir_animation_dark.gif"),
-    loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_6.gif")
-  ];
-}
+    function preload() {
+      gifs = [
+        loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_6.gif"),
+        loadImage("https://raw.githubusercontent.com/weiword/guide/main/resources/ir_animation_dark.gif"),
+        loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_2.gif"),
+        loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_1.gif"),
+        loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_2.gif"),
+        loadImage("https://raw.githubusercontent.com/weiword/guide/main/resources/ir_animation_dark.gif"),
+        loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_6.gif")
+      ];
+    }
 
-function setup() {
-  createCanvas(windowWidth, windowHeight);
-  cols = floor(width / cellSize);
-  rows = floor(height / cellSize);
-  
-  navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-    .then(stream => {
-      video = createCapture(VIDEO);
-      video.size(cols, rows);
-      video.hide();
-    })
-    .catch(() => {
-      console.log("Camera access denied.");
-      noLoop();
-    });
-}
-
-function draw() {
-  if (!video || gifs.length === 0) return;
-  video.loadPixels();
-  
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      let index = (x + y * cols) * 4;
-      let r = video.pixels[index];
-      let g = video.pixels[index + 1];
-      let b = video.pixels[index + 2];
-      let brightness = (r + g + b) / 3;
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      cols = floor(width / cellSize);
+      rows = floor(height / cellSize);
       
-      let gifIndex = floor(map(brightness, 0, 255, 0, gifs.length - 1));
-      let gifImg = gifs[gifIndex];
+      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+        .then(stream => {
+          video = createCapture(VIDEO);
+          video.size(cols, rows);
+          video.hide();
+        })
+        .catch(() => {
+          console.log("Camera access denied.");
+          noLoop();
+        });
+    }
+
+    function draw() {
+      if (!video || gifs.length === 0) return;
+      video.loadPixels();
       
-      if (gifImg.width > 0 && gifImg.height > 0) { // Ensure image is loaded
-        image(gifImg, x * cellSize, y * cellSize, cellSize, cellSize, 
-              random(gifImg.width - cellSize), random(gifImg.height - cellSize),
-              cellSize, cellSize);
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          let index = (x + y * cols) * 4;
+          let r = video.pixels[index];
+          let g = video.pixels[index + 1];
+          let b = video.pixels[index + 2];
+          let brightness = (r + g + b) / 3;
+          
+          let gifIndex = floor(map(brightness, 0, 255, 0, gifs.length - 1));
+          let gifImg = gifs[gifIndex];
+          
+          if (gifImg.width > 0 && gifImg.height > 0) { // Ensure image is loaded
+            image(gifImg, x * cellSize, y * cellSize, cellSize, cellSize, 
+                  random(gifImg.width - cellSize), random(gifImg.height - cellSize),
+                  cellSize, cellSize);
+          }
+        }
       }
     }
-  }
-}
-
+  </script>
+</body>
+</html>
