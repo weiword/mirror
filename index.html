@@ -196,7 +196,7 @@
   }
 
 function renderText(node, grayscaleData) {
-  let gap = isMobileDevice() ? 30 : 20;
+  let gap = isMobileDevice() ? 15 : 10;
   const gridElem = document.createElement('div');
   gridElem.className = 'grid';
   gridElem.style.gridTemplateColumns = `repeat(${grayscaleData[0].length}, ${gap}px)`;
