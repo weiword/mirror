@@ -145,18 +145,10 @@
     return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
   }
 
-  const gifSources = [
-    "https://github.com/weiword/guide/blob/main/resources/ir_animation_dark.gif?raw=true", 
-    "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", 
-    "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", 
-    "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", 
-    "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", 
-    "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", 
-    "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", 
-    "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", 
-    "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", 
-    "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true"
-];
+  const gifs = [
+    "https://github.com/weiword/guide/blob/main/resources/ir_animation_dark.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true",
+    "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true", "https://github.com/weiword/guide/blob/main/resources/ir_animation_light.gif?raw=true"
+  ];
 
   function setCanvasSize() {
     w = Math.min(window.innerWidth, 450);
@@ -199,32 +191,29 @@
   }
 
   function getGifByScale(scale) {
-    const index = Math.floor(scale / 255 * (gifSources.length - 1));
-    return gifSources[index];
+    const index = Math.floor(scale / 255 * (gifs.length - 1));
+    return gifs[index];
   }
 
   function renderText(node, grayscaleData) {
-    let gap = 10;
+    let gap = isMobileDevice() ? 15 : 10;
     const gridElem = document.createElement('div');
     gridElem.className = 'grid';
     gridElem.style.gridTemplateColumns = `repeat(${grayscaleData[0].length}, ${gap}px)`;
     gridElem.style.gridTemplateRows = `repeat(${grayscaleData.length}, ${gap}px)`;
 
     for (let row of grayscaleData) {
-        for (let pixel of row) {
-            const divElem = document.createElement('div');
-            divElem.style.width = `${gap}px`;
-            divElem.style.height = `${gap}px`;
-            divElem.style.backgroundImage = `url(${getGifByScale(pixel)})`;
-            divElem.style.backgroundSize = "200% 200%"; // Zoom into the GIF
-            divElem.style.backgroundPosition = `${Math.random() * 100}% ${Math.random() * 100}%`;
-            gridElem.appendChild(divElem);
-        }
+      for (let pixel of row) {
+        const imgElem = document.createElement('img');
+        imgElem.src = getGifByScale(pixel);
+        imgElem.style.width = `${gap}px`;
+        imgElem.style.height = `${gap}px`;
+        gridElem.appendChild(imgElem);
+      }
     }
 
     node.textContent = "";
     node.appendChild(gridElem);
-}
   }
 
   init();
