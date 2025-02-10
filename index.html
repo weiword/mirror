@@ -195,56 +195,43 @@
     return gifs[index];
   }
 function renderText(node, grayscaleData) {
-  let gap = 20; // Keep tile size consistent to avoid layout issues
-
-  const gridContainer = document.createElement('div'); // New wrapper
-  gridContainer.style.transform = "scale(0.67)"; // Zoom out to 67%
-  gridContainer.style.transformOrigin = "top left"; // Keep position stable
-  gridContainer.style.display = "inline-block"; // Prevent affecting other elements
-
+  let gap = isMobileDevice() ? 30 : 20; // Increase size
   const gridElem = document.createElement('div');
   gridElem.className = 'grid';
-  gridElem.style.display = "grid";
   gridElem.style.gridTemplateColumns = `repeat(${grayscaleData[0].length}, ${gap}px)`;
   gridElem.style.gridTemplateRows = `repeat(${grayscaleData.length}, ${gap}px)`;
-  gridElem.style.gap = "2px"; // Space between elements
 
   node.textContent = "";
-  gridContainer.appendChild(gridElem);
-  node.appendChild(gridContainer); // Append the scaled wrapper
+  node.appendChild(gridElem);
 
   grayscaleData.forEach((row) => {
     row.forEach((pixel) => {
       const gifSrc = getGifByScale(pixel);
 
-      // Wrapper for individual tiles
-      const wrapper = document.createElement('div');
-      wrapper.style.width = `${gap}px`;
-      wrapper.style.height = `${gap}px`;
-      wrapper.style.overflow = "hidden";
-      wrapper.style.display = "flex";
-      wrapper.style.justifyContent = "center";
-      wrapper.style.alignItems = "center";
-
-      // Image element
+      // Create image element
       const imgElem = document.createElement('img');
       imgElem.src = gifSrc;
-      imgElem.style.width = "100px";  // Make it bigger than needed
-      imgElem.style.height = "100px"; 
+      imgElem.style.width = `${gap * 10}px`;  // Make the image larger than needed
+      imgElem.style.height = `${gap * 10}px`; // This allows cropping
       imgElem.style.objectFit = "none"; // Prevent scaling
       imgElem.style.display = "block";
 
-      // Randomize crop position inside the GIF
-      let xPercent = Math.random() * (100 - 10);
+      // Randomize position inside the "virtual 1000x1000" space
+      let xPercent = Math.random() * (100 - 10); // Pick a random view in %
       let yPercent = Math.random() * (100 - 10);
+
       imgElem.style.objectPosition = `${xPercent}% ${yPercent}%`;
 
-      wrapper.appendChild(imgElem);
-      gridElem.appendChild(wrapper);
+      // Scale it up
+      imgElem.style.transform = "scale(2)"; // Make it bigger
+
+      imgElem.style.width = `${gap}px`;
+      imgElem.style.height = `${gap}px`;
+
+      gridElem.appendChild(imgElem);
     });
   });
 }
-
   init();
 
   function frame() {
