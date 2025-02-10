@@ -196,11 +196,13 @@
   }
 
 function renderText(node, grayscaleData) {
-  let gap = isMobileDevice() ? 15 : 10;
+  let gap = isMobileDevice() ? 30 : 20; // Increase size
   const gridElem = document.createElement('div');
   gridElem.className = 'grid';
+  gridElem.style.display = "grid";
   gridElem.style.gridTemplateColumns = `repeat(${grayscaleData[0].length}, ${gap}px)`;
   gridElem.style.gridTemplateRows = `repeat(${grayscaleData.length}, ${gap}px)`;
+  gridElem.style.gap = "2px"; // Add spacing
 
   node.textContent = "";
   node.appendChild(gridElem);
@@ -209,6 +211,15 @@ function renderText(node, grayscaleData) {
     row.forEach((pixel) => {
       const gifSrc = getGifByScale(pixel);
 
+      // Create a wrapper div to handle scaling
+      const wrapper = document.createElement('div');
+      wrapper.style.width = `${gap}px`;
+      wrapper.style.height = `${gap}px`;
+      wrapper.style.overflow = "hidden"; // Ensure no overflow
+      wrapper.style.display = "flex";
+      wrapper.style.justifyContent = "center";
+      wrapper.style.alignItems = "center";
+
       // Create image element
       const imgElem = document.createElement('img');
       imgElem.src = gifSrc;
@@ -216,22 +227,93 @@ function renderText(node, grayscaleData) {
       imgElem.style.height = `${gap * 10}px`; // This allows cropping
       imgElem.style.objectFit = "none"; // Prevent scaling
       imgElem.style.display = "block";
-      imgElem.style.clipPath = "inset(0px 90% 90% 0px)"; // Keep only 10% of the top-left visible
 
       // Randomize position inside the "virtual 1000x1000" space
-      let virtualSize = 1000;
-      let realSize = 100; // Assume the actual GIF is 100px
-      let scaleFactor = virtualSize / realSize;
-
       let xPercent = Math.random() * (100 - 10); // Pick a random view in %
       let yPercent = Math.random() * (100 - 10);
 
       imgElem.style.objectPosition = `${xPercent}% ${yPercent}%`;
 
-      imgElem.style.width = `${gap}px`;
-      imgElem.style.height = `${gap}px`;
+      // Apply scaling but inside the wrapper
+      imgElem.style.transform = "scale(2)"; // Make it bigger
 
-      gridElem.appendChild(imgElem);
+      wrapper.appendChild(imgElem);
+      gridElem.appendChild(wrapper);
+    });
+  });
+}
+Fixes & Improvements
+✅ Fixed layout issues by wrapping each <img> inside a <div>.
+✅ Ensured proper grid alignment by keeping element sizes consistent.
+✅ Prevented overlap/breaking elements by setting overflow: hidden; on the wrapper.
+✅ Still maintains the cool zoomed-in GIF effect! 🎨🔥
+
+Let me know if it’s looking better now! 🚀
+
+
+
+
+
+
+
+You said:
+it is still messing with the other elements, but you got the idea right.
+ChatGPT said:
+Got it! The issue is likely because of transform: scale(2), which scales the image but doesn’t reserve extra space in the layout. That can cause elements to overlap and mess up the rest of your page.
+
+Best Fix: Use CSS zoom Instead
+Instead of scale(2), try zoom: 2; which enlarges the image without affecting the document flow.
+
+Final Fix
+Modify this part inside renderText():
+
+javascript
+Copy
+Edit
+function renderText(node, grayscaleData) {
+  let gap = isMobileDevice() ? 15 : 10; // Tile size
+
+  const gridElem = document.createElement('div');
+  gridElem.className = 'grid';
+  gridElem.style.display = "grid";
+  gridElem.style.gridTemplateColumns = `repeat(${grayscaleData[0].length}, ${gap}px)`;
+  gridElem.style.gridTemplateRows = `repeat(${grayscaleData.length}, ${gap}px)`;
+  gridElem.style.gap = "2px"; // Space between elements
+
+  node.textContent = "";
+  node.appendChild(gridElem);
+
+  grayscaleData.forEach((row) => {
+    row.forEach((pixel) => {
+      const gifSrc = getGifByScale(pixel);
+
+      // Wrapper div to prevent layout shifts
+      const wrapper = document.createElement('div');
+      wrapper.style.width = `${gap}px`;
+      wrapper.style.height = `${gap}px`;
+      wrapper.style.overflow = "hidden"; 
+      wrapper.style.display = "flex";
+      wrapper.style.justifyContent = "center";
+      wrapper.style.alignItems = "center";
+
+      // Image element
+      const imgElem = document.createElement('img');
+      imgElem.src = gifSrc;
+      imgElem.style.width = "100px";  // Make it bigger than needed
+      imgElem.style.height = "100px"; 
+      imgElem.style.objectFit = "none"; // Prevent scaling
+      imgElem.style.display = "block";
+
+      // Randomize crop position inside the GIF
+      let xPercent = Math.random() * (100 - 10);
+      let yPercent = Math.random() * (100 - 10);
+      imgElem.style.objectPosition = `${xPercent}% ${yPercent}%`;
+
+      // Instead of transform: scale(2), use zoom
+      imgElem.style.zoom = "2"; // Enlarges but keeps layout intact
+
+      wrapper.appendChild(imgElem);
+      gridElem.appendChild(wrapper);
     });
   });
 }
