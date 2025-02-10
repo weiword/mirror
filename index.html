@@ -194,84 +194,8 @@
     const index = Math.floor(scale / 255 * (gifs.length - 1));
     return gifs[index];
   }
-
 function renderText(node, grayscaleData) {
-  let gap = isMobileDevice() ? 30 : 20; // Increase size
-  const gridElem = document.createElement('div');
-  gridElem.className = 'grid';
-  gridElem.style.display = "grid";
-  gridElem.style.gridTemplateColumns = `repeat(${grayscaleData[0].length}, ${gap}px)`;
-  gridElem.style.gridTemplateRows = `repeat(${grayscaleData.length}, ${gap}px)`;
-  gridElem.style.gap = "2px"; // Add spacing
-
-  node.textContent = "";
-  node.appendChild(gridElem);
-
-  grayscaleData.forEach((row) => {
-    row.forEach((pixel) => {
-      const gifSrc = getGifByScale(pixel);
-
-      // Create a wrapper div to handle scaling
-      const wrapper = document.createElement('div');
-      wrapper.style.width = `${gap}px`;
-      wrapper.style.height = `${gap}px`;
-      wrapper.style.overflow = "hidden"; // Ensure no overflow
-      wrapper.style.display = "flex";
-      wrapper.style.justifyContent = "center";
-      wrapper.style.alignItems = "center";
-
-      // Create image element
-      const imgElem = document.createElement('img');
-      imgElem.src = gifSrc;
-      imgElem.style.width = `${gap * 10}px`;  // Make the image larger than needed
-      imgElem.style.height = `${gap * 10}px`; // This allows cropping
-      imgElem.style.objectFit = "none"; // Prevent scaling
-      imgElem.style.display = "block";
-
-      // Randomize position inside the "virtual 1000x1000" space
-      let xPercent = Math.random() * (100 - 10); // Pick a random view in %
-      let yPercent = Math.random() * (100 - 10);
-
-      imgElem.style.objectPosition = `${xPercent}% ${yPercent}%`;
-
-      // Apply scaling but inside the wrapper
-      imgElem.style.transform = "scale(2)"; // Make it bigger
-
-      wrapper.appendChild(imgElem);
-      gridElem.appendChild(wrapper);
-    });
-  });
-}
-Fixes & Improvements
-✅ Fixed layout issues by wrapping each <img> inside a <div>.
-✅ Ensured proper grid alignment by keeping element sizes consistent.
-✅ Prevented overlap/breaking elements by setting overflow: hidden; on the wrapper.
-✅ Still maintains the cool zoomed-in GIF effect! 🎨🔥
-
-Let me know if it’s looking better now! 🚀
-
-
-
-
-
-
-
-You said:
-it is still messing with the other elements, but you got the idea right.
-ChatGPT said:
-Got it! The issue is likely because of transform: scale(2), which scales the image but doesn’t reserve extra space in the layout. That can cause elements to overlap and mess up the rest of your page.
-
-Best Fix: Use CSS zoom Instead
-Instead of scale(2), try zoom: 2; which enlarges the image without affecting the document flow.
-
-Final Fix
-Modify this part inside renderText():
-
-javascript
-Copy
-Edit
-function renderText(node, grayscaleData) {
-  let gap = isMobileDevice() ? 15 : 10; // Tile size
+  let gap = isMobileDevice() ? 30 : 20; // Tile size
 
   const gridElem = document.createElement('div');
   gridElem.className = 'grid';
