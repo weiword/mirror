@@ -208,31 +208,30 @@ function renderText(node, grayscaleData) {
   grayscaleData.forEach((row) => {
     row.forEach((pixel) => {
       const gifSrc = getGifByScale(pixel);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = gap;
-      canvas.height = gap;
 
-      const img = new Image();
-      img.crossOrigin = "anonymous"; // Needed for external images
-      img.src = gifSrc;
+      // Create image element
+      const imgElem = document.createElement('img');
+      imgElem.src = gifSrc;
+      imgElem.style.width = `${gap * 10}px`;  // Make the image larger than needed
+      imgElem.style.height = `${gap * 10}px`; // This allows cropping
+      imgElem.style.objectFit = "none"; // Prevent scaling
+      imgElem.style.display = "block";
+      imgElem.style.clipPath = "inset(0px 90% 90% 0px)"; // Keep only 10% of the top-left visible
 
-      img.onload = () => {
-        const virtualSize = 1000; // Virtual GIF size
-        const realSize = img.width; // Actual GIF width
-        const scaleFactor = virtualSize / realSize;
+      // Randomize position inside the "virtual 1000x1000" space
+      let virtualSize = 1000;
+      let realSize = 100; // Assume the actual GIF is 100px
+      let scaleFactor = virtualSize / realSize;
 
-        // Pick a random 10x10 section within the "virtual" 1000x1000 space
-        let srcX = Math.random() * (virtualSize - 10);
-        let srcY = Math.random() * (virtualSize - 10);
+      let xPercent = Math.random() * (100 - 10); // Pick a random view in %
+      let yPercent = Math.random() * (100 - 10);
 
-        // Scale back to real image coordinates
-        srcX /= scaleFactor;
-        srcY /= scaleFactor;
+      imgElem.style.objectPosition = `${xPercent}% ${yPercent}%`;
 
-        ctx.drawImage(img, srcX, srcY, 10 / scaleFactor, 10 / scaleFactor, 0, 0, gap, gap);
-        gridElem.appendChild(canvas);
-      };
+      imgElem.style.width = `${gap}px`;
+      imgElem.style.height = `${gap}px`;
+
+      gridElem.appendChild(imgElem);
     });
   });
 }
