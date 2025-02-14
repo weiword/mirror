@@ -8,63 +8,181 @@
 </head>
 <body>
   <script>
-    let video;
-    let gifs = [];
-    let cols, rows;
-    let cellSize = 8;
+let video;
+let cols, rows;
+let settings = {
+  cellSize: 8,
+  gapSize: 0,
+  backgroundColor: [],
+  palette: [
+    [10, 25, 50], [25, 50, 100], [50, 100, 150],
+    [75, 150, 200], [100, 200, 250], [150, 200, 220],
+    [180, 220, 240], [210, 240, 255], [240, 180, 200], [255, 100, 150]
+  ],
+  effects: {
+    movingLines: { enabled: false, speed: 1, spacing: 25, color: [] },
+    pulse: { enabled: false, speed: 1.1, color: [] },
+    scrollingPalette: { enabled: true, speed: 3, index: 0, offset: 0 },
+    flashingColors: { enabled: false, speed: 10, index: 0, transition: 0 }
+  }
+};
 
-    function preload() {
-      gifs = [
-        loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_6.gif"),
-        loadImage("https://raw.githubusercontent.com/weiword/guide/main/resources/ir_animation_dark.gif"),
-        loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_2.gif"),
-        loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_1.gif"),
-        loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_2.gif"),
-        loadImage("https://raw.githubusercontent.com/weiword/guide/main/resources/ir_animation_dark.gif"),
-        loadImage("https://raw.githubusercontent.com/weiword/mirror/main/resources/ir_font_animation_6.gif")
-      ];
-    }
+let pulseValue = 0;
+let lineOffset = 0;
+let fixedLineColor;
 
-    function setup() {
-      createCanvas(windowWidth, windowHeight);
-      cols = floor(width / cellSize);
-      rows = floor(height / cellSize);
-      
-      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-        .then(stream => {
-          video = createCapture(VIDEO);
-          video.size(cols, rows);
-          video.hide();
-        })
-        .catch(() => {
-          console.log("Camera access denied.");
-          noLoop();
-        });
-    }
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  cols = floor(width / settings.cellSize);
+  rows = floor(height / settings.cellSize);
+  settings.backgroundColor = random(settings.palette);
+  
+  let effectColor = random(settings.palette);
+  settings.effects.pulse.color = effectColor;
+  
+  fixedLineColor = random(settings.palette);
+  settings.effects.movingLines.color = fixedLineColor;
 
-    function draw() {
-      if (!video || gifs.length === 0) return;
-      video.loadPixels();
-      
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          let index = (x + y * cols) * 4;
-          let r = video.pixels[index];
-          let g = video.pixels[index + 1];
-          let b = video.pixels[index + 2];
-          let brightness = (r + g + b) / 3;
-          
-          let gifIndex = floor(map(brightness, 0, 255, 0, gifs.length - 1));
-          let gifImg = gifs[gifIndex];
-          
-          if (gifImg.width > 0 && gifImg.height > 0) { // Ensure image is loaded
-            image(gifImg, x * cellSize, y * cellSize, cellSize, cellSize, 
-                  random(gifImg.width - cellSize), random(gifImg.height - cellSize),
-                  cellSize, cellSize);
-          }
-        }
+  navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+    .then(stream => {
+      video = createCapture(VIDEO);
+      video.size(cols, rows);
+      video.hide();
+    })
+    .catch(() => {
+      console.log("Camera access denied.");
+      noLoop();
+    });
+}
+
+function draw() {
+  if (!video) return;
+  applyBackgroundEffects();
+  video.loadPixels();
+  drawTriangles();
+}
+
+function applyBackgroundEffects() {
+  background(settings.backgroundColor);
+  
+  for (let effect in settings.effects) {
+    if (settings.effects[effect].enabled) {
+      switch (effect) {
+        case 'pulse':
+          applyPulseEffect();
+          break;
+        case 'scrollingPalette':
+          applyScrollingPaletteEffect();
+          break;
+        case 'movingLines':
+          applyMovingLinesEffect();
+          break;
+        case 'flashingColors':
+          applyFlashingColorsEffect();
+          break;
       }
     }
+  }
+}
+
+function applyPulseEffect() {
+  let effectColor = settings.effects.pulse.color;
+  pulseValue = sin(frameCount * settings.effects.pulse.speed) * 50;
+  background(
+    min(effectColor[0] + pulseValue, 255),
+    min(effectColor[1] + pulseValue, 255),
+    min(effectColor[2] + pulseValue, 255)
+  );
+}
+
+function applyScrollingPaletteEffect() {
+  let scrolling = settings.effects.scrollingPalette;
+  scrolling.offset += scrolling.speed;
+  if (scrolling.offset >= height) {
+    scrolling.offset = 0;
+    scrolling.index = (scrolling.index + 1) % settings.palette.length;
+  }
+  let nextIndex = (scrolling.index + 1) % settings.palette.length;
+  let currentColor = settings.palette[scrolling.index];
+  let nextColor = settings.palette[nextIndex];
+  for (let y = 0; y < height; y++) {
+    let colorToUse = y < scrolling.offset ? nextColor : currentColor;
+    stroke(colorToUse);
+    line(0, y, width, y);
+  }
+}
+
+function applyMovingLinesEffect() {
+  let movingLines = settings.effects.movingLines;
+  let lineColor = fixedLineColor;
+  stroke(lineColor[0], lineColor[1], lineColor[2]);
+  strokeWeight(2);
+  
+  lineOffset += movingLines.speed;
+  if (lineOffset > movingLines.spacing) {
+    lineOffset = 0;
+  }
+  
+  for (let x = lineOffset; x < width; x += movingLines.spacing) {
+    line(x, 0, x, height);
+  }
+}
+
+function applyFlashingColorsEffect() {
+  let flashing = settings.effects.flashingColors;
+  flashing.transition += flashing.speed;
+  if (flashing.transition >= 1) {
+    flashing.transition = 0;
+    flashing.index = (flashing.index + 1) % settings.palette.length;
+  }
+  let nextIndex = (flashing.index + 1) % settings.palette.length;
+  let currentColor = settings.palette[flashing.index];
+  let nextColor = settings.palette[nextIndex];
+  
+  let r = lerp(currentColor[0], nextColor[0], flashing.transition);
+  let g = lerp(currentColor[1], nextColor[1], flashing.transition);
+  let b = lerp(currentColor[2], nextColor[2], flashing.transition);
+  
+  background(r, g, b);
+}
+
+function drawTriangles() {
+  let offsetX = (width - cols * settings.cellSize) / 2;
+  let offsetY = (height - rows * settings.cellSize) / 2;
+  let effectiveSize = settings.cellSize - settings.gapSize;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      let index = (x + y * cols) * 4;
+      let r = video.pixels[index];
+      let g = video.pixels[index + 1];
+      let b = video.pixels[index + 2];
+      let brightness = (r + g + b) / 3;
+      let colorIndex = floor(map(brightness, 0, 255, 0, settings.palette.length - 1));
+      let chosenColor = settings.palette[colorIndex];
+      
+      fill(chosenColor[0], chosenColor[1], chosenColor[2]);
+      noStroke();
+      let xPos = x * settings.cellSize + offsetX;
+      let yPos = y * settings.cellSize + offsetY;
+      
+      if ((x + y) % 2 === 0) {
+        triangle(
+          xPos, yPos,
+          xPos + effectiveSize, yPos,
+          xPos + effectiveSize / 2, yPos + effectiveSize
+        );
+      } else {
+        triangle(
+          xPos, yPos + effectiveSize,
+          xPos + effectiveSize, yPos + effectiveSize,
+          xPos + effectiveSize / 2, yPos
+        );
+      }
+    }
+  }
+}
+
   </script>
 </body>
 </html>
