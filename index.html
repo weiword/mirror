@@ -8,10 +8,10 @@
 </head>
 <body>
   <script>
-let video;
+    let video;
 let cols, rows;
 let settings = {
-  cellSize: 8,
+  cellSize: 20,
   gapSize: 0,
   backgroundColor: [],
   palette: [
@@ -20,10 +20,9 @@ let settings = {
     [180, 220, 240], [210, 240, 255], [240, 180, 200], [255, 100, 150]
   ],
   effects: {
-    movingLines: { enabled: false, speed: 1, spacing: 25, color: [] },
-    pulse: { enabled: false, speed: 1.1, color: [] },
-    scrollingPalette: { enabled: true, speed: 3, index: 0, offset: 0 },
-    flashingColors: { enabled: false, speed: 10, index: 0, transition: 0 }
+    movingLines: { enabled: false, speed: 1, spacing: 4, direction: 2, color: [] }, // 0 - Horizontal, 1 - Vertical, 2 - Bottom to Top, 3 - Right to Left
+    pulse: { enabled: false, speed: 1, color: [] },
+    scrollingPalette: { enabled: true, speed: 4, index: 0, offset: 0, direction: 2} // 0 - Top, 1 - Right, 2 - Bottom, 3 - Left
   }
 };
 
@@ -75,10 +74,7 @@ function applyBackgroundEffects() {
           applyScrollingPaletteEffect();
           break;
         case 'movingLines':
-          applyMovingLinesEffect();
-          break;
-        case 'flashingColors':
-          applyFlashingColorsEffect();
+          applyLineEffect(settings.effects.movingLines);
           break;
       }
     }
@@ -98,52 +94,92 @@ function applyPulseEffect() {
 function applyScrollingPaletteEffect() {
   let scrolling = settings.effects.scrollingPalette;
   scrolling.offset += scrolling.speed;
-  if (scrolling.offset >= height) {
-    scrolling.offset = 0;
-    scrolling.index = (scrolling.index + 1) % settings.palette.length;
+  
+  if (scrolling.direction === 0) { // Top
+    if (scrolling.offset >= height) {
+      scrolling.offset = 0;
+      scrolling.index = (scrolling.index + 1) % settings.palette.length;
+    }
+    let nextIndex = (scrolling.index + 1) % settings.palette.length;
+    let currentColor = settings.palette[scrolling.index];
+    let nextColor = settings.palette[nextIndex];
+    for (let y = 0; y < height; y++) {
+      let colorToUse = y < scrolling.offset ? nextColor : currentColor;
+      stroke(colorToUse);
+      line(0, y, width, y);
+    }
   }
-  let nextIndex = (scrolling.index + 1) % settings.palette.length;
-  let currentColor = settings.palette[scrolling.index];
-  let nextColor = settings.palette[nextIndex];
-  for (let y = 0; y < height; y++) {
-    let colorToUse = y < scrolling.offset ? nextColor : currentColor;
-    stroke(colorToUse);
-    line(0, y, width, y);
+  else if (scrolling.direction === 1) { // Right
+    if (scrolling.offset >= width) {
+      scrolling.offset = 0;
+      scrolling.index = (scrolling.index + 1) % settings.palette.length;
+    }
+    let nextIndex = (scrolling.index + 1) % settings.palette.length;
+    let currentColor = settings.palette[scrolling.index];
+    let nextColor = settings.palette[nextIndex];
+    for (let x = 0; x < width; x++) {
+      let colorToUse = x < scrolling.offset ? nextColor : currentColor;
+      stroke(colorToUse);
+      line(x, 0, x, height);
+    }
+  }
+  else if (scrolling.direction === 2) { // Bottom (inverse of Top)
+    if (scrolling.offset >= height) {
+      scrolling.offset = 0;
+      scrolling.index = (scrolling.index + 1) % settings.palette.length;
+    }
+    let nextIndex = (scrolling.index + 1) % settings.palette.length;
+    let currentColor = settings.palette[scrolling.index];
+    let nextColor = settings.palette[nextIndex];
+    for (let y = height - 1; y >= 0; y--) {
+      let colorToUse = y > height - scrolling.offset ? nextColor : currentColor;
+      stroke(colorToUse);
+      line(0, y, width, y);
+    }
+  }
+  else if (scrolling.direction === 3) { // Left (inverse of Right)
+    if (scrolling.offset >= width) {
+      scrolling.offset = 0;
+      scrolling.index = (scrolling.index + 1) % settings.palette.length;
+    }
+    let nextIndex = (scrolling.index + 1) % settings.palette.length;
+    let currentColor = settings.palette[scrolling.index];
+    let nextColor = settings.palette[nextIndex];
+    for (let x = width - 1; x >= 0; x--) {
+      let colorToUse = x > width - scrolling.offset ? nextColor : currentColor;
+      stroke(colorToUse);
+      line(x, 0, x, height);
+    }
   }
 }
 
-function applyMovingLinesEffect() {
-  let movingLines = settings.effects.movingLines;
-  let lineColor = fixedLineColor;
+function applyLineEffect(lineConfig) {
+  let lineColor = lineConfig.color || fixedLineColor;
   stroke(lineColor[0], lineColor[1], lineColor[2]);
   strokeWeight(2);
   
-  lineOffset += movingLines.speed;
-  if (lineOffset > movingLines.spacing) {
+  lineOffset += lineConfig.speed;
+  if (lineOffset > lineConfig.spacing) {
     lineOffset = 0;
   }
   
-  for (let x = lineOffset; x < width; x += movingLines.spacing) {
-    line(x, 0, x, height);
+  if (lineConfig.direction === 0) { // Horizontal lines (Top to Bottom)
+    for (let y = lineOffset; y < height; y += lineConfig.spacing) {
+      line(0, y, width, y);
+    }
+  } else if (lineConfig.direction === 1) { // Vertical lines (Left to Right)
+    for (let x = lineOffset; x < width; x += lineConfig.spacing) {
+      line(x, 0, x, height);
+    }
+  } else if (lineConfig.direction === 2) { // Bottom to Top
+    for (let y = height - lineOffset; y >= 0; y -= lineConfig.spacing) {
+      line(0, y, width, y);
+    }
+  } else if (lineConfig.direction === 3) { // Right to Left
+    for (let x = width - lineOffset; x >= 0; x -= lineConfig.spacing) {
+      line(x, 0, x, height);
+    }
   }
-}
-
-function applyFlashingColorsEffect() {
-  let flashing = settings.effects.flashingColors;
-  flashing.transition += flashing.speed;
-  if (flashing.transition >= 1) {
-    flashing.transition = 0;
-    flashing.index = (flashing.index + 1) % settings.palette.length;
-  }
-  let nextIndex = (flashing.index + 1) % settings.palette.length;
-  let currentColor = settings.palette[flashing.index];
-  let nextColor = settings.palette[nextIndex];
-  
-  let r = lerp(currentColor[0], nextColor[0], flashing.transition);
-  let g = lerp(currentColor[1], nextColor[1], flashing.transition);
-  let b = lerp(currentColor[2], nextColor[2], flashing.transition);
-  
-  background(r, g, b);
 }
 
 function drawTriangles() {
@@ -182,6 +218,7 @@ function drawTriangles() {
     }
   }
 }
+
 
   </script>
 </body>
