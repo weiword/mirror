@@ -22,13 +22,15 @@ let settings = {
   effects: {
     movingLines: { enabled: false, speed: 1, spacing: 4, direction: 2, color: [] }, // 0 - Horizontal, 1 - Vertical, 2 - Bottom to Top, 3 - Right to Left
     pulse: { enabled: false, speed: 1, color: [] },
-    scrollingPalette: { enabled: true, speed: 4, index: 0, offset: 0, direction: 2} // 0 - Top, 1 - Right, 2 - Bottom, 3 - Left
+    scrollingPalette: { enabled: true, speed: 4, index: 0, offset: 0, direction: 2}, // 0 - Top, 1 - Right, 2 - Bottom, 3 - Left
+    cornerGradient: { enabled: true } // New corner gradient effect
   }
 };
 
 let pulseValue = 0;
 let lineOffset = 0;
 let fixedLineColor;
+let cornerGradientImage; // Variable to store the pre-generated gradient
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -42,6 +44,9 @@ function setup() {
   fixedLineColor = random(settings.palette);
   settings.effects.movingLines.color = fixedLineColor;
 
+  // Generate the two-color gradient once
+  generateTwoColorGradient();
+  
   navigator.mediaDevices.getUserMedia({ video: true, audio: false })
     .then(stream => {
       video = createCapture(VIDEO);
@@ -62,8 +67,7 @@ function draw() {
 }
 
 function applyBackgroundEffects() {
-  background(settings.backgroundColor);
-  
+  // Apply all enabled effects
   for (let effect in settings.effects) {
     if (settings.effects[effect].enabled) {
       switch (effect) {
@@ -75,6 +79,9 @@ function applyBackgroundEffects() {
           break;
         case 'movingLines':
           applyLineEffect(settings.effects.movingLines);
+          break;
+        case 'cornerGradient':
+          applyCornerGradientEffect(); // Display pre-generated gradient
           break;
       }
     }
@@ -180,6 +187,37 @@ function applyLineEffect(lineConfig) {
       line(x, 0, x, height);
     }
   }
+}
+
+// New two-color gradient effect
+function generateTwoColorGradient() {
+  // Define two random colors for the gradient
+  let startColor = random(settings.palette);
+  let endColor = random(settings.palette);
+
+  // Create a graphics object to hold the gradient
+  cornerGradientImage = createImage(width, height);
+  cornerGradientImage.loadPixels();
+
+  // Generate the gradient between two colors
+  for (let y = 0; y < height; y++) {
+    let currentColor = lerpColor(color(startColor[0], startColor[1], startColor[2]), color(endColor[0], endColor[1], endColor[2]), y / height);
+
+    for (let x = 0; x < width; x++) {
+      let index = (x + y * width) * 4;
+      cornerGradientImage.pixels[index] = red(currentColor);
+      cornerGradientImage.pixels[index + 1] = green(currentColor);
+      cornerGradientImage.pixels[index + 2] = blue(currentColor);
+      cornerGradientImage.pixels[index + 3] = 255; // Alpha channel (fully opaque)
+    }
+  }
+
+  cornerGradientImage.updatePixels();
+}
+
+function applyCornerGradientEffect() {
+  // Draw the pre-generated gradient image
+  image(cornerGradientImage, 0, 0);
 }
 
 function drawTriangles() {
