@@ -8,10 +8,10 @@
 </head>
 <body>
   <script>
-    let video;
+ let video;
 let cols, rows;
 let settings = {
-  cellSize: 20,
+  cellSize: 10,
   gapSize: 0,
   backgroundColor: [],
   palette: [
@@ -20,10 +20,10 @@ let settings = {
     [180, 220, 240], [210, 240, 255], [240, 180, 200], [255, 100, 150]
   ],
   effects: {
-    movingLines: { enabled: false, speed: 1, spacing: 4, direction: 2, color: [] }, // 0 - Horizontal, 1 - Vertical, 2 - Bottom to Top, 3 - Right to Left
-    pulse: { enabled: false, speed: 1, color: [] },
-    scrollingPalette: { enabled: true, speed: 4, index: 0, offset: 0, direction: 2}, // 0 - Top, 1 - Right, 2 - Bottom, 3 - Left
-    cornerGradient: { enabled: true } // New corner gradient effect
+    movingLines: { enabled: false, speed: 1, spacing: 6, direction: 1, color: [] }, // 0 - Horizontal, 1 - Vertical, 2 - Bottom to Top, 3 - Right to Left
+    pulse: { enabled: true, speed: 1, color: [] },
+    scrollingPalette: { enabled: false, speed: 4, index: 0, offset: 0, direction: 2}, // 0 - Top, 1 - Right, 2 - Bottom, 3 - Left
+    cornerGradient: { enabled: false } // New corner gradient effect
   }
 };
 
@@ -206,6 +206,24 @@ function applyCornerGradientEffect() {
   // Draw the pre-generated gradient image
   image(cornerGradientImage, 0, 0);
 }
+
+function applyPulseEffect() {
+  let pulse = settings.effects.pulse;
+  let pulseSpeed = pulse.speed * 0.05; // Adjust pulse speed for smoother effect
+  pulseValue = (sin(frameCount * pulseSpeed) + 1) / 2; // Oscillates between 0 and 1
+
+  let pulseColor = pulse.color || [255, 255, 255]; // Default to white if no color set
+  let bgColor = settings.backgroundColor;
+
+  let lerpedColor = lerpColor(
+    color(bgColor[0], bgColor[1], bgColor[2]),
+    color(pulseColor[0], pulseColor[1], pulseColor[2]),
+    pulseValue
+  );
+
+  background(lerpedColor);
+}
+
 
 function drawTriangles() {
   let offsetX = (width - cols * settings.cellSize) / 2;
