@@ -65,38 +65,25 @@ function draw() {
   video.loadPixels();
   drawTriangles();
 }
-
+    
 function applyBackgroundEffects() {
-  // Apply all enabled effects
-  for (let effect in settings.effects) {
-    if (settings.effects[effect].enabled) {
-      switch (effect) {
-        case 'pulse':
-          applyPulseEffect();
-          break;
-        case 'scrollingPalette':
-          applyScrollingPaletteEffect();
-          break;
-        case 'movingLines':
-          applyLineEffect(settings.effects.movingLines);
-          break;
-        case 'cornerGradient':
-          applyCornerGradientEffect(); // Display pre-generated gradient
-          break;
-      }
-    }
+  // First, apply all background-changing effects
+  if (settings.effects.pulse.enabled) {
+    applyPulseEffect();  // Pulse directly modifies the background
+  } else if (settings.effects.scrollingPalette.enabled) {
+    applyScrollingPaletteEffect();  // Palette animation modifies the background
+  } else if (settings.effects.cornerGradient.enabled) {
+    applyCornerGradientEffect();  // Gradient should be applied like a background
+  } else {
+    background(settings.backgroundColor); // Default background
+  }
+
+  // Then, apply all foreground effects that should overlay on top
+  if (settings.effects.movingLines.enabled) {
+    applyLineEffect(settings.effects.movingLines);  // Ensures lines appear on top
   }
 }
 
-function applyPulseEffect() {
-  let effectColor = settings.effects.pulse.color;
-  pulseValue = sin(frameCount * settings.effects.pulse.speed) * 50;
-  background(
-    min(effectColor[0] + pulseValue, 255),
-    min(effectColor[1] + pulseValue, 255),
-    min(effectColor[2] + pulseValue, 255)
-  );
-}
 
 function applyScrollingPaletteEffect() {
   let scrolling = settings.effects.scrollingPalette;
